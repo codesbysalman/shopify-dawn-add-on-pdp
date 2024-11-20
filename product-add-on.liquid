@@ -1,0 +1,384 @@
+<div class="product-right_accordion">
+  <div class="product-right-{{ block.id }} product__accordion accordion quick-add-hidden" {{ block.shopify_attributes }}>
+    <details {% if block.settings.open_tap %} open {% endif %} id="Details-{{ block.id }}-{{ section.id }}">
+      <summary>
+        <div class="summary__title">
+          {% render 'icon-accordion', icon: block.settings.icon %}
+          <h3 class="h4 accordion__title inline-richtext">
+           <span>{{ block.settings.title_icon | image_url: height: '53x' | image_tag }}</span> {{ block.settings.heading | default: block.settings.page.title | escape }}
+          </h3>
+        </div>
+        {% render 'icon-caret' %}
+      </summary>
+      <div class="accordion__content rte" id="ProductAccordion-{{ block.id }}-{{ section.id }}">
+        {{ block.settings.content }}
+        <div class="product-listing_value">
+          {% comment %} main-product {% endcomment %}
+          {% capture main_variant_data %}
+            [
+              {% for v in product.variants %}
+                {
+                  "id": {{ v.id | json }},
+                  "price": {{ v.price | json }},
+                  "priceHtml": {{ v.price | money | json }},
+                  "options": {{ v.options | json }}
+                }{% unless forloop.last %},{% endunless %}
+              {% endfor %}
+            ]
+          {% endcapture %}
+          <div class="product-listing_row" data-identity={{ product.id }} data-variant-json='{{ main_variant_data }}'>
+            <div class="product-leftcl_img">
+              <input type="checkbox" class="input-checkbox add-on-checkbox" id="consent-{{ product.id }}" data-id="{{ product.selected_or_first_available_variant.id }}" checked required>
+              {{ product.featured_image | image_url: width: '200x' | image_tag }}
+            </div>
+            <div class="product-right_detail">
+              <h3>{{ product.title }}</h3>
+              <span class="product-price" data-price='{{ product.price }}'>{{ product.price | money }}</span>
+              <div class="custom-label"><span>{{ 'products.product.inside_magin' | t }}:</span><span>{{ product.metafields.custom.inside_margin.value }}</span></div>
+              <div class="custom-label"><span>{{ 'products.product.material_label' | t }}:</span><span>{{ product.metafields.custom.material.value }}</span></div>
+              <div class="select-field">
+              {%- unless product.has_only_default_variant -%}
+                <variant-radios class="no-js-hidden" data-section="{{ section.id }}" data-url="{{ product.url }}" {{ block.shopify_attributes }}>
+                      <fieldset class="product-form__input">
+                        <div class="select">
+                          <select name="size" id="size-{{ product.id }}" form="{{ product_form_id }}" class="select__select">
+                            <option value="" disabled selected>Select Size</option>
+                            {%- for variant in product.variants -%}
+                              {% liquid
+                                assign variant_title = variant.title | downcase
+                              %}
+                              {%- unless variant_title contains 'yes' -%}
+                                <option value="{{ variant.option1 | escape }}" {% unless variant.available %}class="product-unavailable" disabled{% endunless %}>
+                                  {{ variant.option1 | escape }}
+                                </option>
+                                {%- endunless -%}
+                            {%- endfor -%}
+                          </select>
+                          {% render 'icon-caret' %}
+                        </div>
+                      </fieldset>
+                </variant-radios>
+              {%- endunless -%}
+              </div>
+              <a href="{{ product.url }}" class="mainProd seeMore">{{ 'products.product.see_more' | t }}</a>
+            </div>
+          </div>
+
+          {% assign pair_products = product.metafields.custom.pair_product.value %}
+          {% for productItem in pair_products %}
+            {% capture variant_data %}
+              [
+                {% for v in productItem.variants %}
+                  {
+                    "id": {{ v.id | json }},
+                    "price": {{ v.price | json }},
+                    "priceHtml": {{ v.price | money | json }},
+                    "options": {{ v.options | json }}
+                  }{% unless forloop.last %},{% endunless %}
+                {% endfor %}
+              ]
+            {% endcapture %}
+          <div class="product-listing_row" data-identity={{ productItem.id }} data-variant-json='{{ variant_data }}'>
+            <div class="product-leftcl_img">
+              <input type="checkbox" class="input-checkbox add-on-checkbox" id="consent-{{ productItem.id }}" data-id="{{ productItem.selected_or_first_available_variant.id }}" checked required>
+              {{ productItem.featured_image | image_url: width: '200x' | image_tag }}
+            </div>
+            <div class="product-right_detail">
+              <h3>{{ productItem.title }}</h3>
+              <span class="product-price" data-price='{{ productItem.price }}'>{{ productItem.price | money }}</span>
+              <div class="custom-label"><span>{{ 'products.product.inside_magin' | t }}:</span><span>{{ productItem.metafields.custom.inside_margin.value }}</span></div>
+              <div class="custom-label"><span>{{ 'products.product.material_label' | t }}:</span><span>{{ productItem.metafields.custom.material.value }}</span></div>
+              <div class="select-field">
+              {%- unless productItem.has_only_default_variant -%}
+                <variant-radios class="no-js-hidden" data-section="{{ section.id }}" data-url="{{ product.url }}" {{ block.shopify_attributes }}>
+                      <fieldset class="product-form__input">
+                        <div class="select">
+                          <select name="size" id="size-{{ productItem.id }}" form="{{ product_form_id }}" class="select__select">
+                            <option value="" disabled selected>Select Size</option>
+                            {%- for variant in productItem.variants -%}
+                              {% liquid
+                                assign variant_title = variant.title | downcase
+                              %}
+                            {%- unless variant_title contains 'yes' -%}
+                              <option value="{{ variant.option1 | escape }}" {% unless variant.available %}class="product-unavailable" disabled{% endunless %}>
+                                {{ variant.option1 | escape }}
+                              </option>
+                              {%- endunless -%}
+                            {% endfor %}
+                          </select>
+                          {% render 'icon-caret' %}
+                        </div>
+                      </fieldset>
+                  <script type="application/json">
+                    {{ product.variants | json }}
+                  </script>
+                </variant-radios>
+              {%- endunless -%}
+              <noscript class="product-form__noscript-wrapper-{{ section.id }}">
+                <div class="product-form__input{% if product.has_only_default_variant %} hidden{% endif %}">
+                  <label class="form__label" for="Variants-{{ section.id }}">{{ 'products.product.product_variants' | t }}</label>
+                  <div class="select">
+                    <select name="id" id="Variants-{{ section.id }}" class="select__select" form="{{ product_form_id }}">
+                      {%- for variant in product.variants -%}
+                        <option
+                          {% if variant == product.selected_or_first_available_variant %}selected="selected"{% endif %}
+                          {% if variant.available == false %}disabled{% endif %}
+                          value="{{ variant.id }}"
+                        >
+                          {{ variant.title }}
+                          {%- if variant.available == false %} - {{ 'products.product.sold_out' | t }}{% endif %}
+                          - {{ variant.price | money | strip_html }}
+                        </option>
+                      {%- endfor -%}
+                    </select>
+                    {% render 'icon-caret' %}
+                  </div>
+                </div>
+              </noscript>
+              </div>
+              <a href="{{ productItem.url }}" class="seeMore">{{ 'products.product.see_more' | t }}</a>
+            </div>
+          </div>
+      {% endfor %}
+        </div>
+      </div>
+      <div class="add-on-cart-total-price-wrapper">
+        <span class="total-mrp-text">TOTAL MRP</span>
+        <span class="total-price">
+        </span>
+        <span class="inclusive-text">(Inclusive of all taxes)</span>
+      </div>
+      <product-form data-section-id="add-on-{{ section.id }}">
+        <div class="product-form__error-message-wrapper" role="alert" hidden>
+          <svg
+            aria-hidden="true"
+            focusable="false"
+            class="icon icon-error"
+            viewBox="0 0 13 13"
+          >
+            <circle cx="6.5" cy="6.50049" r="5.5" stroke="white" stroke-width="2"/>
+            <circle cx="6.5" cy="6.5" r="5.5" fill="#EB001B" stroke="#EB001B" stroke-width="0.7"/>
+            <path d="M5.87413 3.52832L5.97439 7.57216H7.02713L7.12739 3.52832H5.87413ZM6.50076 9.66091C6.88091 9.66091 7.18169 9.37267 7.18169 9.00504C7.18169 8.63742 6.88091 8.34917 6.50076 8.34917C6.12061 8.34917 5.81982 8.63742 5.81982 9.00504C5.81982 9.37267 6.12061 9.66091 6.50076 9.66091Z" fill="white"/>
+            <path d="M5.87413 3.17832H5.51535L5.52424 3.537L5.6245 7.58083L5.63296 7.92216H5.97439H7.02713H7.36856L7.37702 7.58083L7.47728 3.537L7.48617 3.17832H7.12739H5.87413ZM6.50076 10.0109C7.06121 10.0109 7.5317 9.57872 7.5317 9.00504C7.5317 8.43137 7.06121 7.99918 6.50076 7.99918C5.94031 7.99918 5.46982 8.43137 5.46982 9.00504C5.46982 9.57872 5.94031 10.0109 6.50076 10.0109Z" fill="white" stroke="#EB001B" stroke-width="0.7">
+          </svg>
+          <span class="product-form__error-message"></span>
+        </div>
+        {%- form 'product',
+          product,
+          id: product_form_id,
+          class: 'form',
+          novalidate: 'novalidate',
+          data-type: 'add-to-cart-form'
+        -%}
+          <input class="add-on-input dfhd main-prod"
+            id = "add-on-{{ product.id }}"
+            type="hidden"
+            name="id[]"
+            value="{{ product.selected_or_first_available_variant.id }}"
+            disabled
+          >
+          {% for addonvariant in product.metafields.custom.pair_product.value %}
+          <input class="add-on-input dfhd add-on-prod"
+            id = "add-on-{{ addonvariant.id }}"
+            type="hidden"
+            name="id[]"
+            value="{{ addonvariant.selected_or_first_available_variant.id }}"
+            disabled
+          >
+          {% endfor %}
+          <div class="product-form__buttons add-on-products-form__button">
+          {%- liquid
+            assign check_against_inventory = true
+            if product.selected_or_first_available_variant.inventory_management != 'shopify' or product.selected_or_first_available_variant.inventory_policy == 'continue'
+              assign check_against_inventory = false
+            endif
+            if product.selected_or_first_available_variant.quantity_rule.min > product.selected_or_first_available_variant.inventory_quantity and check_against_inventory
+              assign quantity_rule_soldout = true
+            endif
+          -%}
+            <button
+              id="ProductAddOnSubmitButton-{{ section.id }}"
+              type="submit"
+              name="add"
+              class="product-form__submit button button--full-width {% if show_dynamic_checkout %}button--secondary{% else %}button--primary{% endif %}"
+              {% if product.selected_or_first_available_variant.available == false or quantity_rule_soldout %}
+                disabled
+              {% endif %}
+            >
+              <span>
+              {%- if product.selected_or_first_available_variant.available == false or quantity_rule_soldout -%}
+                {{ 'products.product.sold_out' | t }}
+              {%- else -%}
+                Add Selected to bag
+              {%- endif -%}
+              </span>
+              {%- render 'loading-spinner' -%}
+            </button>
+            {%- if show_dynamic_checkout -%}
+              {{ form | payment_button }}
+            {%- endif -%}
+          </div>
+        {%- endform -%}
+      </product-form>
+    </details>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const addOnProducts = document.querySelectorAll('.product-listing_row');
+    const checkboxes = document.querySelectorAll('.add-on-checkbox');
+    const submitButton = document.getElementById('ProductAddOnSubmitButton-{{ section.id }}');
+    const totalPriceElement = document.querySelector('.total-price');
+    const mainShowDetails = document.querySelector('.mainProd.seeMore');
+    let totalPrice = 0;
+
+    function updateTotalPrice() {
+      totalPrice = 0; // Reset total price
+      checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+          const productRow = checkbox.closest('.product-listing_row');
+          const priceText = productRow.querySelector('.product-price').getAttribute('data-price');
+          const numericPrice = parseFloat(priceText);
+          if (!isNaN(numericPrice)) {
+            totalPrice += numericPrice;
+          }
+        }
+      });
+
+      // Update total price display
+      const formattedPrice = Shopify.formatMoney(totalPrice, "{{ shop.money_format }}");
+      const priceTotal = formattedPrice.replace(/MRP\.\s*/, '₹');
+      totalPriceElement.innerHTML = priceTotal.replace(/INR/, ''); // Adjust the currency symbol as needed
+    }
+
+    function updateFormInput(checkbox) {
+      let dataId = checkbox.getAttribute('data-id');
+      if(checkbox.checked) {
+        // element.getAttribute('data-id');
+        // element.removeAttribute("disabled", "disabled");
+        document.querySelector('[value="'+dataId+'"].add-on-input').removeAttribute('disabled');
+      }
+      else{
+        document.querySelector('[value="'+dataId+'"].add-on-input').setAttribute('disabled', '');
+      }
+    }
+
+    function updateButtonState() {
+      // Check if any checkbox is checked
+      const isAnyChecked = [...checkboxes].some(checkbox => checkbox.checked);
+      // Enable or disable the submit button based on checkbox state
+      submitButton.disabled = !isAnyChecked;
+    }
+
+    function showError(selectElement, message) {
+      const parentElement = selectElement.parentElement;
+      let errorElement = parentElement.nextElementSibling;
+      if (!errorElement || !errorElement.classList.contains('error-message')) {
+        errorElement = document.createElement('div');
+        errorElement.className = 'error-message';
+        errorElement.style.color = 'red';
+        parentElement.insertAdjacentElement('afterend', errorElement);
+      }
+      errorElement.textContent = message;
+    }
+
+    function removeError(selectElement) {
+      const parentElement = selectElement.parentElement;
+      const errorElement = parentElement.nextElementSibling;
+      if (errorElement && errorElement.classList.contains('error-message')) {
+        errorElement.remove();
+      }
+    }
+
+    function validateSizeSelection() {
+      let isValid = true;
+      checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+          const productRow = checkbox.closest('.product-listing_row');
+          const selectElement = productRow.querySelector('select[name="size"]');
+          if (selectElement && !selectElement.value) {
+            showError(selectElement, 'Please select a size.');
+            isValid = false;
+            if (isValid === false) {
+              selectElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          } else {
+            removeError(selectElement);
+          }
+        }
+      });
+      return isValid;
+    }
+
+    submitButton.addEventListener('click', function(event) {
+      if (!validateSizeSelection()) {
+        event.preventDefault(); // Prevent form submission if validation fails
+      }
+    });
+
+    updateButtonState();
+    updateTotalPrice();
+
+    mainShowDetails.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    })
+
+    checkboxes && [...checkboxes].forEach(checkbox => {
+      updateFormInput(checkbox);
+      checkbox.addEventListener('change', function(event){
+        updateFormInput(checkbox);
+        updateButtonState();
+        updateTotalPrice();
+
+        if (!checkbox.checked) {
+          const productRow = checkbox.closest('.product-listing_row');
+          const selectElement = productRow.querySelector('select[name="size"]');
+          if (selectElement) {
+            const parentElement = selectElement.parentElement;
+            const errorElement = parentElement.nextElementSibling;
+            if (errorElement && errorElement.classList.contains('error-message')) {
+              removeError(selectElement);
+            }
+          }
+        }
+      })
+    });
+
+    addOnProducts.forEach(addOnProduct => {
+    // Get the variant data from the data attribute
+      const addOnProductId = addOnProduct.getAttribute('data-identity');
+      const variant = addOnProduct.getAttribute('data-variant-json');
+      const variantData = JSON.parse(variant);
+      const formInput = document.getElementById(`add-on-${addOnProductId}`);
+      const selectElement = document.getElementById(`size-${addOnProductId}`);
+      const productCheckBox = document.getElementById(`consent-${addOnProductId}`);
+      const productPriceElement = addOnProduct.querySelector('.product-price');
+      const totalPriceElement = document.querySelector('.total-price .money');
+      const currentPrice = productPriceElement.getAttribute('data-price');
+
+      selectElement.addEventListener('change', function() {
+        const selectedSize = selectElement.value;
+        // Find the variant that matches the selected option
+        const selectedVariant = variantData.find(variant =>
+          variant.options.includes(selectedSize) && !variant.options.includes("Yes")
+        );
+        if (selectedVariant) {
+          productCheckBox.setAttribute('data-id', selectedVariant.id);
+          formInput.value = selectedVariant.id;
+          if(currentPrice != selectedVariant.price) {
+            productPriceElement.setAttribute('data-price', selectedVariant.price);
+            productPriceElement.innerHTML = selectedVariant.priceHtml;
+          }
+        }
+        if (selectElement.value) {
+          removeError(selectElement);
+        }
+        updateTotalPrice();
+      });
+    })
+  });
+</script>
