@@ -1,0 +1,84 @@
+{% comment %}
+Add Below code in collection grid file after paginate
+{% render 'load-more', paginate: paginate %}
+{% endcomment %}
+
+<div class="load-more-wrapper">
+  <button id="load-more" class="button button--primary load-more-button">
+    <span>Load More</span>
+    {% render 'loading-spinner' %}
+  </button>
+</div>
+
+<script>
+  const loadMoreDiv = document.querySelector('.load-more-wrapper');
+  const loadMoreButton = loadMoreDiv.querySelector('.load-more-button');
+  const loadingSpinner = loadMoreDiv.querySelector('.loading__spinner');
+
+  const loadMode = 'infinite';
+
+  const productGrid = document.querySelector('#product-grid');
+  let nextUrl = document.querySelector('#product-grid').dataset.nextUrl;
+
+
+  async function loadMoreProducts() {
+    if(!nextUrl) return;
+    console.log(nextUrl, 'before');
+
+    loadMoreButton.classList.add('loading');
+    loadingSpinner.classList.remove('hidden');
+
+    {% comment %}
+      fetch(nextUrl)
+      .then(response => {
+        if(!response.ok) {
+          throw new error('Failed load more products');
+        }
+        return response.text();
+      })
+      .then(html => {
+        const productGrid = document.querySelector('#product-grid');
+
+      })
+    {% endcomment %}
+
+    const nextProducts = await getNextProducts(nextUrl);
+    const parser = new DOMParser();
+    const nextPageDoc = parser.parseFromString(nextProducts, 'text/html');
+    const nextPageUrl = nextPageDoc.querySelector('#product-grid').getAttribute('data-next-url');
+    if(!nextPageUrl) {
+      loadMoreButton.classList.add('hidden');
+    }
+    nextUrl = nextPageUrl;
+    const nextProductsHtml = nextPageDoc.querySelectorAll('.grid__item');
+    loadMoreButton.classList.remove('loading');
+    loadingSpinner.classList.add('hidden');
+    nextProductsHtml.forEach((nextProductHtml) => {
+      productGrid.appendChild(nextProductHtml);
+    })
+
+    console.log(nextPageUrl, "after");
+  }
+
+  async function getNextProducts(nextUrl) {
+    try {
+      const nextProducts = await fetch(nextUrl);
+      return await nextProducts.text();
+    } catch(error) {
+      console.error(error);
+    }
+  }
+
+  {% comment %} loadMoreButton.addEventListener("click", loadMoreProducts); {% endcomment %}
+
+  if (loadMode === "infinite") {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && (!loadMoreButton.classList.contains('loading') || !loadMoreButton.classList.contains('hidden')) ) {
+          loadMoreProducts();
+        }
+      });
+    });
+    observer.observe(loadMoreDiv);
+  }
+</script>
